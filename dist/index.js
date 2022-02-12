@@ -48,7 +48,7 @@ class Runner {
     async run() {
         try {
             await this.vendor.connect();
-            core.info(`Connected to vendor: ${this.vendor.info()}`);
+            core.info(`Connected to vendor: ${await this.vendor.info()}`);
         } catch (error) {
             core.setFailed(error.message);
         }
@@ -81,7 +81,8 @@ class Vultr extends CloudVendor {
     }
 
     async info() {
-        return JSON.stringify(await this.vultr.account.getAccountInfo());
+        let info = await this.vultr.account.getAccountInfo();
+        return `[Name] ${info.account.name} [Email] ${info.account.email}`;
     }
 
 }

@@ -64,6 +64,7 @@ module.exports = Runner;
 /***/ 7321:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const core = __nccwpck_require__(2186);
 const CloudVendor = __nccwpck_require__(4363);
 const VultrAPI = __nccwpck_require__(4530);
 

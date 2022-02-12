@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "ncc build main.js -m"
+    "build": "ncc build main.js"
   },
   "dependencies": {
     "@actions/core": "^1.6.0",

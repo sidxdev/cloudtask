@@ -81,7 +81,7 @@ class Vultr extends CloudVendor {
     }
 
     async info() {
-        return await this.vultr.account.getAccountInfo();
+        return JSON.stringify(await this.vultr.account.getAccountInfo());
     }
 
 }

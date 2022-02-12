@@ -9,7 +9,9 @@ const assert = __nccwpck_require__(9491);
 
 class CloudVendor {
 
-    validate() {
+    constructor({ name }) {
+        this.name = name;
+
         assert(typeof this.name === 'string');
         assert(typeof this.connect === 'function');
         assert(typeof this.info === 'function');
@@ -32,18 +34,21 @@ const Vultr = __nccwpck_require__(7321);
 class Runner {
 
     constructor() {
-        const vendor = core.getInput('vendor') || "vultr";
+        const vendor = core.getInput('vendor');
         switch (vendor) {
             case "vultr":
                 this.vendor = new Vultr();
+                break;
             default:
                 core.setFailed(`Vendor not supported: ${vendor}`);
         }
+        core.info(`Vendor selected: ${vendor}`);
     }
 
     async run() {
         try {
-            core.info(`Connectoed to vendor: ${this.vendor.info()}`);
+            await this.vendor.connect();
+            core.info(`Connected to vendor: ${this.vendor.info()}`);
         } catch (error) {
             core.setFailed(error.message);
         }
@@ -66,17 +71,15 @@ const VultrAPI = __nccwpck_require__(4530);
 class Vultr extends CloudVendor {
 
     constructor() {
-        super();
-        this.name = 'vultr';
-        this.validate();
+        super({ name: 'vultr' });
     }
 
-    connect() {
+    async connect() {
         const apiKey = core.getInput('api_key');
         this.vultr = VultrAPI.initialize({ apiKey });
     }
 
-    async info () {
+    async info() {
         return await this.vultr.account.getAccountInfo();
     }
 

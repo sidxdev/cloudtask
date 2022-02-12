@@ -6,15 +6,17 @@
 
 const assert = __nccwpck_require__(9491);
 
+
 class CloudVendor {
 
-    constructor() {
-        assert(typeof this.name === 'string')
-        assert(typeof this.connect === 'function')
-        assert(typeof this.info === 'function')
+    validate() {
+        assert(typeof this.name === 'string');
+        assert(typeof this.connect === 'function');
+        assert(typeof this.info === 'function');
     }
 
 };
+
 
 module.exports = CloudVendor;
 
@@ -26,7 +28,9 @@ module.exports = CloudVendor;
 const core = __nccwpck_require__(2186);
 const Vultr = __nccwpck_require__(7321);
 
+
 class Runner {
+
     constructor() {
         const vendor = core.getInput('vendor') || "vultr";
         switch (vendor) {
@@ -44,7 +48,9 @@ class Runner {
             core.setFailed(error.message);
         }
     }
+
 };
+
 
 module.exports = Runner;
 
@@ -56,21 +62,26 @@ module.exports = Runner;
 const CloudVendor = __nccwpck_require__(4363);
 const VultrAPI = __nccwpck_require__(4530);
 
+
 class Vultr extends CloudVendor {
+
     constructor() {
         super();
-        this.name = 'vultr'
+        this.name = 'vultr';
+        this.validate();
     }
 
     connect() {
-        apiKey = core.getInput('api_key');
+        const apiKey = core.getInput('api_key');
         this.vultr = VultrAPI.initialize({ apiKey });
     }
 
     async info () {
-        await this.vultr.account.getAccountInfo()
+        return await this.vultr.account.getAccountInfo();
     }
+
 }
+
 
 module.exports = Vultr;
 
@@ -9614,61 +9625,17 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _lib_Runner__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(5172);
-/* harmony import */ var _lib_Runner__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_lib_Runner__WEBPACK_IMPORTED_MODULE_0__);
+const Runner = __nccwpck_require__(5172);
 
-
-const runner = new (_lib_Runner__WEBPACK_IMPORTED_MODULE_0___default())();
+const runner = new Runner();
 runner.run();
 })();
 

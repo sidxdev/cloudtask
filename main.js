@@ -1,4 +1,4 @@
-import Runner from './lib/Runner';
+const Runner = require('./lib/Runner');
 
 const runner = new Runner();
 runner.run();

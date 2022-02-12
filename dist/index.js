@@ -40,7 +40,7 @@ class Runner {
                 this.vendor = new Vultr();
                 break;
             default:
-                core.setFailed(`Vendor not supported: ${vendor}`);
+                throw new Error(`Vendor not supported: ${vendor}`);
         }
         core.info(`Vendor selected: ${vendor}`);
     }

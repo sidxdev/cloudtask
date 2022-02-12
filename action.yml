@@ -11,5 +11,5 @@ inputs:
     description: 'Vendor API key'
     required: true
   task:
-    description: 'Shell script to run.'
+    description: 'Path to shell script task'
     required: true

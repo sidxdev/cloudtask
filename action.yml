@@ -1,13 +1,8 @@
 name: 'Cloud Task'
 description: 'A GitHub Action to run a shell script Cloud Task on an IaaS of your choice'
-
 runs:
-  using: "composite"
-  steps:
-    - uses: actions/checkout@v2
-    - run: npm start
-      shell: bash
-
+  using: 'node16'
+  main: './dist/index.js'
 inputs:
   vendor:
     description: 'Cloud Vendor from [vultr, digitalocean, linode]'

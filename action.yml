@@ -1,0 +1,15 @@
+name: 'Cloud Task'
+description: 'A GitHub Action to run a shell script Cloud Task on an IaaS of your choice'
+runs:
+  using: 'node16'
+  main: 'main.js'
+inputs:
+  vendor:
+    description: 'Cloud Vendor from [vultr, digitalocean, linode]'
+    required: true
+  api_key:
+    description: 'Vendor API key'
+    required: true
+  task:
+    description: 'Shell script to run.'
+    required: true

@@ -2,7 +2,7 @@ name: 'Cloud Task'
 description: 'A GitHub Action to run a shell script Cloud Task on an IaaS of your choice'
 runs:
   using: 'node16'
-  main: 'main.js'
+  main: './dist/index.js'
 inputs:
   vendor:
     description: 'Cloud Vendor from [vultr, digitalocean, linode]'

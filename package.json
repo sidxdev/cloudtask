@@ -1,12 +1,9 @@
 {
   "scripts": {
-    "build": "ncc build main.js -m"
+    "start": "node index.js"
   },
   "dependencies": {
     "@actions/core": "^1.6.0",
     "@vultr/vultr-node": "^2.3.0"
-  },
-  "devDependencies": {
-    "@vercel/ncc": "^0.33.2"
   }
 }

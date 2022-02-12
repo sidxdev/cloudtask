@@ -31,6 +31,8 @@ const core = __nccwpck_require__(2186);
 const Vultr = __nccwpck_require__(7321);
 
 
+const taskPath = core.getMultilineInput("task");
+
 class Runner {
 
     constructor() {
@@ -49,6 +51,12 @@ class Runner {
         try {
             await this.vendor.connect();
             core.info(`Connected to vendor: ${await this.vendor.info()}`);
+            
+            let instanceID = await this.vendor.create({ ram: 1, cpu: 1, region: 'ewr' });
+            core.info(`Created new server: ${instanceID}`);
+
+            await this.vendor.destroy(instanceID);
+            core.info(`Deleted server: ${instanceID}`);
         } catch (error) {
             core.setFailed(error.message);
         }
@@ -67,6 +75,7 @@ module.exports = Runner;
 const core = __nccwpck_require__(2186);
 const CloudVendor = __nccwpck_require__(4363);
 const VultrAPI = __nccwpck_require__(4530);
+const { waitUntil } = __nccwpck_require__(1299);
 
 
 class Vultr extends CloudVendor {
@@ -83,6 +92,43 @@ class Vultr extends CloudVendor {
     async info() {
         let info = await this.vultr.account.getAccountInfo();
         return `[Name] ${info.account.name} [Email] ${info.account.email}`;
+    }
+
+    async create({ ram = 1, cpu = 1, region }) {
+        const plan = `vc2-${cpu}c-${ram}gb`;
+
+        // create instance
+        const { instance } = await this.vultr.instances.createInstance({
+            region,
+            plan,
+            os_id: '517',
+            tag: 'cloudtask'
+        });
+
+        // Wait up to 5min for activation
+        await waitUntil(async () => {
+            let status = await this.get(instance.id);
+            core.info(`Waiting for server activation. Status ${status.instance.power_status}...`);
+            return status.instance.power_status === 'running';
+        }, {
+            timeout: 300000,
+            intervalBetweenAttempts: 30000
+        });
+
+        return instance.id;
+    }
+
+    async get(id) {
+        return this.vultr.instances.getInstance({ 'instance-id': id });
+    }
+
+    async destroy(id) {
+        return this.vultr.instances.deleteInstance({ 'instance-id': id });
+    }
+
+    async destroyAll() {
+        let { instances } = await this.vultr.instances.listInstances();
+        instances.forEach(async ({ id }) => await this.destroy(id))
     }
 
 }
@@ -5322,6 +5368,130 @@ exports.makeApiRequest = function (config, endpoint, userParameters) {
 
 /***/ }),
 
+/***/ 1299:
+/***/ (function(__unused_webpack_module, exports) {
+
+!function(e,t){ true?t(exports):0}(this,(function(e){"use strict";class t extends Error{constructor(e){super(null!=e?`Timed out after waiting for ${e} ms`:"Timed out"),Object.setPrototypeOf(this,t.prototype)}}const o=(e,t)=>new Promise(((o,n)=>{try{e.schedule(o,t)}catch(e){n(e)}})),n={schedule:(e,t)=>{let o;const n=e=>{null!=e&&clearTimeout(e),o=void 0};return o=setTimeout((()=>{n(o),e()}),t),{cancel:()=>n(o)}}},i=Number.POSITIVE_INFINITY,r=(e,r,l)=>{var u,s;const c=null!==(u="number"==typeof r?r:null==r?void 0:r.timeout)&&void 0!==u?u:5e3,d=null!==(s="number"==typeof r?l:null==r?void 0:r.intervalBetweenAttempts)&&void 0!==s?s:50;let a=!1;const f=()=>new Promise(((t,i)=>{const r=()=>{a||new Promise(((t,o)=>{try{t(e())}catch(e){o(e)}})).then((e=>{e?t(e):o(n,d).then(r).catch(i)})).catch(i)};r()})),T=c!==i?()=>o(n,c).then((()=>{throw a=!0,new t(c)})):void 0;return null!=T?Promise.race([f(),T()]):f()};e.DEFAULT_INTERVAL_BETWEEN_ATTEMPTS_IN_MS=50,e.DEFAULT_TIMEOUT_IN_MS=5e3,e.TimeoutError=t,e.WAIT_FOREVER=i,e.default=r,e.waitUntil=r,Object.defineProperty(e,"__esModule",{value:!0})}));//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
+/***/ 2437:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const fs = __nccwpck_require__(7147)
+const path = __nccwpck_require__(1017)
+const os = __nccwpck_require__(2037)
+
+const LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg
+
+// Parser src into an Object
+function parse (src) {
+  const obj = {}
+
+  // Convert buffer to string
+  let lines = src.toString()
+
+  // Convert line breaks to same format
+  lines = lines.replace(/\r\n?/mg, '\n')
+
+  let match
+  while ((match = LINE.exec(lines)) != null) {
+    const key = match[1]
+
+    // Default undefined or null to empty string
+    let value = (match[2] || '')
+
+    // Remove whitespace
+    value = value.trim()
+
+    // Check if double quoted
+    const maybeQuote = value[0]
+
+    // Remove surrounding quotes
+    value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2')
+
+    // Expand newlines if double quoted
+    if (maybeQuote === '"') {
+      value = value.replace(/\\n/g, '\n')
+      value = value.replace(/\\r/g, '\r')
+    }
+
+    // Add to object
+    obj[key] = value
+  }
+
+  return obj
+}
+
+function _log (message) {
+  console.log(`[dotenv][DEBUG] ${message}`)
+}
+
+function _resolveHome (envPath) {
+  return envPath[0] === '~' ? path.join(os.homedir(), envPath.slice(1)) : envPath
+}
+
+// Populates process.env from .env file
+function config (options) {
+  let dotenvPath = path.resolve(process.cwd(), '.env')
+  let encoding = 'utf8'
+  const debug = Boolean(options && options.debug)
+  const override = Boolean(options && options.override)
+
+  if (options) {
+    if (options.path != null) {
+      dotenvPath = _resolveHome(options.path)
+    }
+    if (options.encoding != null) {
+      encoding = options.encoding
+    }
+  }
+
+  try {
+    // Specifying an encoding returns a string instead of a buffer
+    const parsed = DotenvModule.parse(fs.readFileSync(dotenvPath, { encoding }))
+
+    Object.keys(parsed).forEach(function (key) {
+      if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+        process.env[key] = parsed[key]
+      } else {
+        if (override === true) {
+          process.env[key] = parsed[key]
+        }
+
+        if (debug) {
+          if (override === true) {
+            _log(`"${key}" is already defined in \`process.env\` and WAS overwritten`)
+          } else {
+            _log(`"${key}" is already defined in \`process.env\` and was NOT overwritten`)
+          }
+        }
+      }
+    })
+
+    return { parsed }
+  } catch (e) {
+    if (debug) {
+      _log(`Failed to load ${dotenvPath} ${e.message}`)
+    }
+
+    return { error: e }
+  }
+}
+
+const DotenvModule = {
+  config,
+  parse
+}
+
+module.exports.config = DotenvModule.config
+module.exports.parse = DotenvModule.parse
+module.exports = DotenvModule
+
+
+/***/ }),
+
 /***/ 467:
 /***/ ((module, exports, __nccwpck_require__) => {
 
@@ -9638,6 +9808,8 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
+(__nccwpck_require__(2437).config)();
+
 const Runner = __nccwpck_require__(5172);
 
 const runner = new Runner();

@@ -51,7 +51,9 @@ class Runner {
         try {
             await this.vendor.connect();
             core.info(`Connected to vendor: ${await this.vendor.info()}`);
-            
+
+            return console.log(JSON.stringify(await this.vendor.getAll(), 0, 2));
+
             let instanceID = await this.vendor.create({ ram: 1, cpu: 1, region: 'ewr' });
             core.info(`Created new server: ${instanceID}`);
 
@@ -124,12 +126,16 @@ class Vultr extends CloudVendor {
         return this.vultr.instances.getInstance({ 'instance-id': id });
     }
 
+    async getAll() {
+        return await this.vultr.instances.listInstances();
+    }
+
     async destroy(id) {
         return this.vultr.instances.deleteInstance({ 'instance-id': id });
     }
 
     async destroyAll() {
-        let { instances } = await this.vultr.instances.listInstances();
+        let { instances } = await this.getAll();
         instances.forEach(async ({ id }) => await this.destroy(id))
     }
 
